@@ -1,0 +1,39 @@
+# --- Dependencies ---
+**/node_modules/
+.pnp
+.pnp.js
+
+# --- Environment / Secrets ---
+**/.env
+**/.env.local
+**/.env.*.local
+**/.flaskenv
+
+# --- Build Artifacts ---
+**/dist/
+**/build/
+**/.next/
+**/.vite/
+*.tsbuildinfo
+
+# --- Logs ---
+**/logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- OS / IDE ---
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- Testing ---
+**/coverage/
+**/.nyc_output

@@ -1,0 +1,20 @@
+{
+  "stations": [
+    {
+      "id": "vancouver-port",
+      "name": "Vancouver Port Station",
+      "address": "123 Harbour Rd, Vancouver, BC V6A 1A1",
+      "staffUsername": "vancouver-staff",
+      "_staffPassword_DEV_ONLY": "vancouver2025",
+      "staffPasswordHash": "$2a$10$XdFpM7rZEj9Kh8KRXf5PKe3IpGmqYp/cdJSTn6RIJqy.kRa88a5JS"
+    },
+    {
+      "id": "halifax-port",
+      "name": "Halifax Port Station",
+      "address": "456 Waterfront Dr, Halifax, NS B3J 1S9",
+      "staffUsername": "halifax-staff",
+      "_staffPassword_DEV_ONLY": "halifax2025",
+      "staffPasswordHash": "$2a$10$VacZ9Y84ChbMTqneWopJIOcIKwXo4WmblDWArOkruXmbpgHVdzlOm"
+    }
+  ]
+}
