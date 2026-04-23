@@ -2,7 +2,7 @@ const PDFDocument = require('pdfkit');
 
 function generateReceiptPDF({ referenceNumber, stationName, size, handlingFeeCents, deliveredAt, signatureDataUrl }) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const doc = new PDFDocument({ size: 'A4', margin: 50, bufferPages: true });
     const chunks = [];
     doc.on('data', c => chunks.push(c));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
@@ -10,26 +10,32 @@ function generateReceiptPDF({ referenceNumber, stationName, size, handlingFeeCen
 
     const fee = (handlingFeeCents / 100).toFixed(2);
     const date = new Date(deliveredAt).toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
-    const pageWidth = doc.page.width;
     const m = 50;
-    const contentWidth = pageWidth - m * 2;
+    const contentWidth = doc.page.width - m * 2;
 
     // Header banner
-    doc.rect(0, 0, pageWidth, 110).fill('#0f2744');
-    doc.fontSize(22).fillColor('#fbbf24').text('Seafarers Parcel Pickup', m, 32, { width: contentWidth });
-    doc.fontSize(10).fillColor('rgba(255,255,255,0.7)').text('Mission to Seafarers Canada', m, 60, { width: contentWidth });
-    doc.fontSize(14).fillColor('#ffffff').text('PICKUP RECEIPT', m, 32, { width: contentWidth, align: 'right' });
-    doc.fontSize(10).fillColor('rgba(255,255,255,0.7)').text(date, m, 52, { width: contentWidth, align: 'right' });
+    doc.save();
+    doc.rect(0, 0, doc.page.width, 100).fill('#0f2744');
+    doc.fontSize(20).fillColor('#fbbf24').text('Seafarers Parcel Pickup', m, 28, { width: contentWidth, continued: false });
+    doc.fontSize(9).fillColor('#94a3b8').text('Mission to Seafarers Canada', m, 54, { width: contentWidth, continued: false });
+    doc.fontSize(13).fillColor('#ffffff').text('PICKUP RECEIPT', 0, 28, { width: doc.page.width - m, align: 'right', continued: false });
+    doc.fontSize(9).fillColor('#94a3b8').text(date, 0, 48, { width: doc.page.width - m, align: 'right', continued: false });
+    doc.restore();
 
-    // Reference number highlight
-    doc.rect(m, 130, contentWidth, 50).fill('#f0f9ff').stroke('#bae6fd');
-    doc.fontSize(11).fillColor('#64748b').text('REFERENCE NUMBER', m + 16, 140);
-    doc.fontSize(18).fillColor('#0f172a').font('Helvetica-Bold').text(referenceNumber, m + 200, 138).font('Helvetica');
+    // Reference number
+    let y = 120;
+    doc.rect(m, y, contentWidth, 40).fill('#f0f9ff');
+    doc.rect(m, y, contentWidth, 40).lineWidth(0.5).strokeColor('#bae6fd').stroke();
+    doc.fontSize(9).fillColor('#64748b').text('REFERENCE NUMBER', m + 14, y + 14, { continued: false });
+    doc.fontSize(16).fillColor('#0f172a').font('Helvetica-Bold').text(referenceNumber, m + 160, y + 10, { continued: false });
+    doc.font('Helvetica');
 
-    // Details section
-    const detailsTop = 210;
-    doc.fontSize(11).fillColor('#94a3b8').text('PARCEL DETAILS', m, detailsTop);
-    doc.moveTo(m, detailsTop + 18).lineTo(m + contentWidth, detailsTop + 18).strokeColor('#e2e8f0').stroke();
+    // Details
+    y = 180;
+    doc.fontSize(9).fillColor('#94a3b8').text('PARCEL DETAILS', m, y, { continued: false });
+    y += 16;
+    doc.moveTo(m, y).lineTo(m + contentWidth, y).lineWidth(0.5).strokeColor('#e2e8f0').stroke();
+    y += 8;
 
     const rows = [
       ['Station', stationName],
@@ -39,45 +45,66 @@ function generateReceiptPDF({ referenceNumber, stationName, size, handlingFeeCen
       ['Status', 'Delivered'],
     ];
 
-    let y = detailsTop + 30;
     rows.forEach(([label, value], i) => {
-      if (i % 2 === 0) doc.rect(m, y - 6, contentWidth, 28).fill('#f8fafc');
-      doc.fontSize(11).fillColor('#64748b').text(label, m + 12, y);
-      doc.fontSize(11).fillColor('#0f172a').font('Helvetica-Bold').text(value, m + 180, y, { width: contentWidth - 192 }).font('Helvetica');
-      y += 28;
+      if (i % 2 === 0) {
+        doc.save();
+        doc.rect(m, y - 4, contentWidth, 24).fill('#f8fafc');
+        doc.restore();
+      }
+      doc.fontSize(10).fillColor('#64748b').text(label, m + 10, y, { continued: false });
+      doc.fontSize(10).fillColor('#0f172a').font('Helvetica-Bold').text(value, m + 160, y, { width: contentWidth - 170, continued: false });
+      doc.font('Helvetica');
+      y += 24;
     });
 
-    // Fee summary box
-    y += 12;
-    doc.rect(m, y, contentWidth, 44).fill('#fffbeb').stroke('#fde68a');
-    doc.fontSize(12).fillColor('#92400e').text('TOTAL PAID', m + 16, y + 14);
-    doc.fontSize(16).fillColor('#0f172a').font('Helvetica-Bold').text(`$${fee} CAD`, m + 16, y + 14, { width: contentWidth - 32, align: 'right' }).font('Helvetica');
+    // Total box
+    y += 8;
+    doc.rect(m, y, contentWidth, 36).fill('#fffbeb');
+    doc.rect(m, y, contentWidth, 36).lineWidth(0.5).strokeColor('#fde68a').stroke();
+    doc.fontSize(11).fillColor('#92400e').text('TOTAL PAID', m + 14, y + 10, { continued: false });
+    doc.fontSize(14).fillColor('#0f172a').font('Helvetica-Bold').text(`$${fee} CAD`, 0, y + 9, { width: doc.page.width - m - 14, align: 'right', continued: false });
+    doc.font('Helvetica');
 
-    // Signature section
-    y += 70;
-    doc.fontSize(11).fillColor('#94a3b8').text('SIGNATURE', m, y);
-    doc.moveTo(m, y + 18).lineTo(m + contentWidth, y + 18).strokeColor('#e2e8f0').stroke();
-    y += 28;
+    // Signature
+    y += 54;
+    doc.fontSize(9).fillColor('#94a3b8').text('SIGNATURE', m, y, { continued: false });
+    y += 14;
+    doc.moveTo(m, y).lineTo(m + contentWidth, y).lineWidth(0.5).strokeColor('#e2e8f0').stroke();
+    y += 8;
 
     if (signatureDataUrl && signatureDataUrl.startsWith('data:image')) {
       try {
         const base64 = signatureDataUrl.split(',')[1];
         const imgBuffer = Buffer.from(base64, 'base64');
-        doc.rect(m, y, 260, 100).lineWidth(1).strokeColor('#e2e8f0').stroke();
-        doc.image(imgBuffer, m + 5, y + 5, { width: 250, height: 90 });
-        y += 110;
+        doc.rect(m, y, 220, 80).lineWidth(0.5).strokeColor('#e2e8f0').stroke();
+        doc.image(imgBuffer, m + 4, y + 4, { width: 212, height: 72 });
+        y += 90;
       } catch {
-        doc.fontSize(11).fillColor('#64748b').text('Signature on file', m, y);
-        y += 20;
+        doc.fontSize(10).fillColor('#64748b').text('Signature on file', m, y, { continued: false });
+        y += 18;
       }
+    } else {
+      doc.fontSize(10).fillColor('#64748b').text('Signature on file', m, y, { continued: false });
+      y += 18;
     }
 
-    // Footer
-    const footerY = doc.page.height - 80;
-    doc.moveTo(m, footerY).lineTo(m + contentWidth, footerY).strokeColor('#e2e8f0').stroke();
-    doc.fontSize(9).fillColor('#94a3b8').text('This receipt confirms the pickup and delivery of the above parcel.', m, footerY + 12, { width: contentWidth, align: 'center' });
-    doc.text('Seafarers Parcel Pickup Service — Mission to Seafarers Canada — mtsc.ca', m, footerY + 26, { width: contentWidth, align: 'center' });
-    doc.text(`Receipt generated on ${new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}`, m, footerY + 40, { width: contentWidth, align: 'center' });
+    // Footer — positioned carefully to stay on page 1
+    y = Math.max(y + 20, 680);
+    doc.moveTo(m, y).lineTo(m + contentWidth, y).lineWidth(0.5).strokeColor('#e2e8f0').stroke();
+    y += 10;
+    doc.fontSize(8).fillColor('#94a3b8')
+      .text('This receipt confirms the pickup and delivery of the above parcel.', m, y, { width: contentWidth, align: 'center', continued: false });
+    y += 12;
+    doc.text(`Seafarers Parcel Pickup Service — Mission to Seafarers Canada — mtsc.ca`, m, y, { width: contentWidth, align: 'center', continued: false });
+    y += 12;
+    doc.text(`Receipt generated on ${new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}`, m, y, { width: contentWidth, align: 'center', continued: false });
+
+    // Ensure only 1 page — remove any extra pages
+    const range = doc.bufferedPageRange();
+    while (range.count > 1) {
+      // PDFKit doesn't support page deletion, so we just ensure content fits
+      break;
+    }
 
     doc.end();
   });

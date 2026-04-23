@@ -50,7 +50,7 @@ router.post('/confirm-payment', async (req, res) => {
     const existing = await ParcelRequest.findOne({ where: { stripeSessionId: sessionId } });
     if (existing) {
       const station = findStation(req, existing.stationId);
-      return res.json({ ...existing.toJSON(), stationName: station?.name, stationAddress: station?.address });
+      return res.json({ ...existing.toJSON(), stationName: station?.name, stationAddress: station?.address, stationPhone: station?.phone, stationEmail: station?.email });
     }
 
     const { size, stationId } = req.body;
@@ -90,6 +90,8 @@ router.post('/confirm-payment', async (req, res) => {
       ...parcel.toJSON(),
       stationName: station?.name,
       stationAddress: station?.address,
+      stationPhone: station?.phone,
+      stationEmail: station?.email,
     });
   } catch (err) {
     console.error('Confirm payment error:', err);
@@ -106,7 +108,7 @@ router.get('/active', async (req, res) => {
     });
     const result = parcels.map(p => {
       const station = findStation(req, p.stationId);
-      return { ...p.toJSON(), stationName: station?.name };
+      return { ...p.toJSON(), stationName: station?.name, stationAddress: station?.address, stationPhone: station?.phone, stationEmail: station?.email };
     });
     res.json(result);
   } catch (err) {
@@ -123,7 +125,7 @@ router.get('/delivered', async (req, res) => {
     });
     const result = parcels.map(p => {
       const station = findStation(req, p.stationId);
-      return { ...p.toJSON(), stationName: station?.name };
+      return { ...p.toJSON(), stationName: station?.name, stationAddress: station?.address, stationPhone: station?.phone, stationEmail: station?.email };
     });
     res.json(result);
   } catch (err) {
@@ -137,7 +139,7 @@ router.get('/:id', async (req, res) => {
     const parcel = await ParcelRequest.findOne({ where: { id: req.params.id, userId: req.user.userId } });
     if (!parcel) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Parcel not found' } });
     const station = findStation(req, parcel.stationId);
-    res.json({ ...parcel.toJSON(), stationName: station?.name, stationAddress: station?.address });
+    res.json({ ...parcel.toJSON(), stationName: station?.name, stationAddress: station?.address, stationPhone: station?.phone, stationEmail: station?.email });
   } catch (err) {
     res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Failed to fetch parcel' } });
   }
@@ -146,8 +148,7 @@ router.get('/:id', async (req, res) => {
 // PATCH /api/parcels/:id/tracking
 router.patch('/:id/tracking', async (req, res) => {
   try {
-    const { trackingLink, shippingFrom } = req.body;
-    if (!trackingLink) return res.status(400).json({ error: { code: 'MISSING_FIELDS', message: 'trackingLink is required' } });
+    const { trackingLink, shippingFrom, estimatedArrival } = req.body;
 
     const parcel = await ParcelRequest.findOne({ where: { id: req.params.id, userId: req.user.userId } });
     if (!parcel) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Parcel not found' } });
@@ -156,7 +157,7 @@ router.patch('/:id/tracking', async (req, res) => {
       return res.status(409).json({ error: { code: 'INVALID_TRANSITION', message: `Cannot transition from ${parcel.status} to Shipped` } });
     }
 
-    await parcel.update({ trackingLink, shippingFrom: shippingFrom || null, status: 'Shipped', shippedAt: new Date() });
+    await parcel.update({ trackingLink: trackingLink || null, shippingFrom: shippingFrom || null, estimatedArrival: estimatedArrival || null, status: 'Shipped', shippedAt: new Date() });
     res.json(parcel.toJSON());
   } catch (err) {
     res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Failed to update tracking' } });

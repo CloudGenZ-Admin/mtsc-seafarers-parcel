@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../../api/client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import sizeGuideImg from '../../assets/size_guide.jpeg';
 
 const SIZES = [
-  { value: 'Small', fee: '$15.00', desc: 'Fits in a shoebox' },
-  { value: 'Medium', fee: '$20.00', desc: 'Up to a carry-on bag' },
-  { value: 'Large', fee: '$30.00', desc: 'Suitcase-sized or larger' },
+  { value: 'Small', fee: '$5.00', cents: 500 },
+  { value: 'Medium', fee: '$7.00', cents: 700 },
+  { value: 'Large', fee: '$10.00', cents: 1000 },
+  { value: 'Extra Large', fee: '$12.00', cents: 1200 },
 ];
 
 export default function NewParcelPage() {
@@ -13,6 +16,8 @@ export default function NewParcelPage() {
   const [prefs, setPrefs] = useState([]);
   const [stationId, setStationId] = useState('');
   const [size, setSize] = useState('');
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -37,6 +42,7 @@ export default function NewParcelPage() {
 
   const handleSubmit = async () => {
     if (!stationId || !size) { setError('Please select a station and parcel size.'); return; }
+    if (!agreedTerms) { setError('Please accept the Terms & Conditions to continue.'); return; }
     setError(''); setSubmitting(true);
     try {
       const { data } = await api.post('/parcels', { stationId, size });
@@ -57,6 +63,7 @@ export default function NewParcelPage() {
       <p className="page-subtitle">Choose a station and parcel size, then pay the handling fee</p>
       {error && <div className="error-msg mb-20">{error}</div>}
 
+      {/* Step 1: Station */}
       <div className="card">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
           <span style={{ background: 'linear-gradient(135deg, #d05535, #b84a2e)', color: '#fff', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700 }}>1</span>
@@ -73,6 +80,13 @@ export default function NewParcelPage() {
             <div>
               <p style={{ fontWeight: 600, fontSize: 16, color: '#0f172a' }}>{s.name}</p>
               <p style={{ color: '#64748b', fontSize: 14 }}>{s.address}</p>
+              {(s.phone || s.email) && (
+                <p style={{ color: '#0369a1', fontSize: 13, marginTop: 4 }}>
+                  {s.phone && <span>{s.phone}</span>}
+                  {s.phone && s.email && <span> · </span>}
+                  {s.email && <span>{s.email}</span>}
+                </p>
+              )}
             </div>
             <button onClick={(e) => { e.stopPropagation(); togglePref(s.id); }}
               style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: prefs.includes(s.id) ? '#f59e0b' : '#d1d5db', transition: 'color 0.2s' }}
@@ -83,26 +97,31 @@ export default function NewParcelPage() {
         ))}
       </div>
 
+      {/* Step 2: Size */}
       <div className="card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <span style={{ background: 'linear-gradient(135deg, #d05535, #b84a2e)', color: '#fff', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700 }}>2</span>
           <h2 style={{ fontSize: 19, fontWeight: 700 }}>Choose Parcel Size</h2>
         </div>
+        <p style={{ fontSize: 14, color: '#0369a1', cursor: 'pointer', marginBottom: 16, fontWeight: 600 }}
+          onClick={() => setShowSizeGuide(true)}>
+          📏 Check size guide
+        </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {SIZES.map(s => (
             <div key={s.value} onClick={() => setSize(s.value)} style={{
-              flex: '1 1 140px', padding: '18px 16px', borderRadius: 12, cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s',
+              flex: '1 1 120px', padding: '18px 12px', borderRadius: 12, cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s',
               border: size === s.value ? '2px solid #d05535' : '2px solid #e2e8f0',
               background: size === s.value ? 'linear-gradient(135deg, #f0f9ff, #e0f2fe)' : '#fff',
             }}>
-              <p style={{ fontWeight: 700, fontSize: 17, color: '#0f172a' }}>{s.value}</p>
-              <p style={{ fontWeight: 800, fontSize: 20, color: '#d05535', marginTop: 2 }}>{s.fee}</p>
-              <p style={{ fontSize: 13, color: '#94a3b8', marginTop: 4 }}>{s.desc}</p>
+              <p style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>{s.value}</p>
+              <p style={{ fontWeight: 800, fontSize: 20, color: '#d05535', marginTop: 4 }}>{s.fee}</p>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Order Summary */}
       {stationId && size && (
         <div className="card card-gold">
           <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 12 }}>Order Summary</h3>
@@ -119,10 +138,42 @@ export default function NewParcelPage() {
         </div>
       )}
 
-      <button className="btn btn-primary btn-block" onClick={handleSubmit} disabled={submitting || !stationId || !size}
+      {/* Terms checkbox */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, margin: '16px 0 20px', padding: '0 4px' }}>
+        <input type="checkbox" id="terms" checked={agreedTerms} onChange={e => setAgreedTerms(e.target.checked)}
+          style={{ width: 20, height: 20, marginTop: 2, cursor: 'pointer', accentColor: '#d05535' }} />
+        <label htmlFor="terms" style={{ fontSize: 15, color: '#475569', cursor: 'pointer' }}>
+          I agree to the{' '}
+          <Link to="/terms" target="_blank" style={{ color: '#d05535', fontWeight: 600, textDecoration: 'underline' }}>
+            Terms & Conditions
+          </Link>
+        </label>
+      </div>
+
+      <button className="btn btn-primary btn-block" onClick={handleSubmit} disabled={submitting || !stationId || !size || !agreedTerms}
         style={{ fontSize: 18, padding: '16px 28px' }}>
         {submitting ? 'Redirecting to Payment...' : 'Proceed to Payment'}
       </button>
+
+      {/* Size Guide Modal */}
+      {showSizeGuide && (
+        <div onClick={() => setShowSizeGuide(false)} style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#fff', borderRadius: 16, padding: 20, maxWidth: 600, width: '100%', maxHeight: '90vh', overflow: 'auto',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a' }}>Size Guide</h2>
+              <button onClick={() => setShowSizeGuide(false)}
+                style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#94a3b8', padding: 4 }}>✕</button>
+            </div>
+            <img src={sizeGuideImg} alt="Parcel Size Guide" style={{ width: '100%', borderRadius: 12 }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

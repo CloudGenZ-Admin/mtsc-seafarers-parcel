@@ -8,9 +8,10 @@ import NewParcelPage from './pages/seafarer/NewParcelPage';
 import PaymentSuccessPage from './pages/seafarer/PaymentSuccessPage';
 import PaymentCancelPage from './pages/seafarer/PaymentCancelPage';
 import PastPickupsPage from './pages/seafarer/PastPickupsPage';
+import TermsPage from './pages/seafarer/TermsPage';
 import StaffLoginPage from './pages/staff/StaffLoginPage';
 import StaffDashboardPage from './pages/staff/StaffDashboardPage';
-import ScanPage from './pages/staff/ScanPage';
+import CompletedPage from './pages/staff/CompletedPage';
 import ReportsPage from './pages/staff/ReportsPage';
 
 function ProtectedRoute({ children, role }) {
@@ -32,8 +33,9 @@ function AppRoutes() {
       <Route path="/payment/success" element={<ProtectedRoute role="seafarer"><PaymentSuccessPage /></ProtectedRoute>} />
       <Route path="/payment/cancel" element={<ProtectedRoute role="seafarer"><PaymentCancelPage /></ProtectedRoute>} />
       <Route path="/past-pickups" element={<ProtectedRoute role="seafarer"><PastPickupsPage /></ProtectedRoute>} />
+      <Route path="/terms" element={<TermsPage />} />
       <Route path="/staff/dashboard" element={<ProtectedRoute role="staff"><StaffDashboardPage /></ProtectedRoute>} />
-      <Route path="/staff/scan" element={<ProtectedRoute role="staff"><ScanPage /></ProtectedRoute>} />
+      <Route path="/staff/completed" element={<ProtectedRoute role="staff"><CompletedPage /></ProtectedRoute>} />
       <Route path="/staff/reports" element={<ProtectedRoute role="staff"><ReportsPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>

@@ -84,8 +84,10 @@ export default function ScanPage() {
           </div>
           <div className="divider" />
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 15, color: '#475569', marginBottom: 20 }}>
-            <div><span style={{ color: '#94a3b8' }}>Seafarer</span><br /><strong>{parcel.seafarerEmail || parcel.User?.email}</strong></div>
+            <div><span style={{ color: '#94a3b8' }}>Seafarer</span><br /><strong>{parcel.seafarerName || parcel.seafarerEmail || parcel.User?.email}</strong></div>
+            {parcel.seafarerPhone && <div><span style={{ color: '#94a3b8' }}>Phone</span><br /><strong>{parcel.seafarerPhone}</strong></div>}
             <div><span style={{ color: '#94a3b8' }}>Size</span><br /><strong>{parcel.size}</strong></div>
+            {parcel.estimatedArrival && <div><span style={{ color: '#94a3b8' }}>Est. Arrival</span><br /><strong>{new Date(parcel.estimatedArrival).toLocaleDateString()}</strong></div>}
           </div>
 
           {parcel.status === 'Arrived' ? (

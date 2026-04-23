@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../../api/client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import StationContact from '../../components/common/StationContact';
 
 export default function PaymentSuccessPage() {
   const [searchParams] = useSearchParams();
@@ -62,6 +63,7 @@ export default function PaymentSuccessPage() {
             <div style={{ marginTop: 8, padding: 14, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
               <p style={{ fontWeight: 700, fontSize: 17 }}>{parcel.stationName}</p>
               <p style={{ color: '#64748b', fontSize: 15 }}>{parcel.stationAddress}</p>
+              <StationContact phone={parcel.stationPhone} email={parcel.stationEmail} style={{ marginTop: 8 }} />
             </div>
           </div>
         </div>

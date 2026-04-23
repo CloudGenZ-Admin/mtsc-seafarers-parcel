@@ -4,7 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../api/client';
 
 export default function RegisterPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,10 +17,11 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!firstName.trim() || !lastName.trim()) { setError('First name and last name are required.'); return; }
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/register', { email, password });
+      const { data } = await api.post('/auth/register', { email, password, firstName: firstName.trim(), lastName: lastName.trim(), phone: phone.trim() || undefined });
       login(data.token, data);
       navigate('/parcels/new');
     } catch (err) {
@@ -36,9 +40,23 @@ export default function RegisterPage() {
         <div className="card" style={{ padding: 32 }}>
           {error && <div className="error-msg" style={{ marginBottom: 20 }}>{error}</div>}
           <form onSubmit={handleSubmit}>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label htmlFor="firstName">First Name</label>
+                <input id="firstName" type="text" value={firstName} onChange={e => setFirstName(e.target.value)} placeholder="John" required />
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label htmlFor="lastName">Last Name</label>
+                <input id="lastName" type="text" value={lastName} onChange={e => setLastName(e.target.value)} placeholder="Doe" required />
+              </div>
+            </div>
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="phone">Phone Number <span style={{ color: '#94a3b8', fontWeight: 400 }}>(optional)</span></label>
+              <input id="phone" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 123-4567" />
             </div>
             <div className="form-group">
               <label htmlFor="password">Password</label>

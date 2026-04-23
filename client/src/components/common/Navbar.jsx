@@ -11,7 +11,7 @@ const seafarerLinks = [
 ];
 const staffLinks = [
   { to: '/staff/dashboard', label: 'Dashboard' },
-  { to: '/staff/scan', label: 'Scan QR' },
+  { to: '/staff/completed', label: 'Completed' },
   { to: '/staff/reports', label: 'Reports' },
 ];
 

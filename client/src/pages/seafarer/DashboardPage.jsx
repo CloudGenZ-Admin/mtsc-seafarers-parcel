@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import api from '../../api/client';
 import StatusBadge from '../../components/common/StatusBadge';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import StationContact from '../../components/common/StationContact';
 
 export default function DashboardPage() {
   const [parcels, setParcels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trackingInput, setTrackingInput] = useState({});
   const [shippingFromInput, setShippingFromInput] = useState({});
+  const [arrivalDateInput, setArrivalDateInput] = useState({});
   const [qrData, setQrData] = useState({});
 
   useEffect(() => { fetchParcels(); }, []);
@@ -17,8 +19,14 @@ export default function DashboardPage() {
     catch {} finally { setLoading(false); }
   };
   const addTracking = async (id) => {
-    if (!trackingInput[id]) return;
-    try { await api.patch(`/parcels/${id}/tracking`, { trackingLink: trackingInput[id], shippingFrom: shippingFromInput[id] }); fetchParcels(); } catch {}
+    try {
+      await api.patch(`/parcels/${id}/tracking`, {
+        trackingLink: trackingInput[id],
+        shippingFrom: shippingFromInput[id] || undefined,
+        estimatedArrival: arrivalDateInput[id] || undefined,
+      });
+      fetchParcels();
+    } catch {}
   };
   const showQR = async (id) => {
     try { const { data } = await api.get(`/parcels/${id}/qrcode`); setQrData(prev => ({ ...prev, [id]: data.qrCodeDataUrl })); } catch {}
@@ -54,23 +62,31 @@ export default function DashboardPage() {
           </div>
           <div className="divider" />
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 15, color: '#475569' }}>
-            <div><span style={{ color: '#94a3b8' }}>Station</span><br /><strong>{p.stationName}</strong></div>
+            <div><span style={{ color: '#94a3b8' }}>Station</span><br /><strong>{p.stationName}</strong>{p.stationAddress && <span style={{ display: 'block', fontSize: 13, color: '#64748b', fontWeight: 400, marginTop: 2 }}>{p.stationAddress}</span>}</div>
             <div><span style={{ color: '#94a3b8' }}>Size</span><br /><strong>{p.size}</strong></div>
             {p.trackingLink && <div><span style={{ color: '#94a3b8' }}>Tracking</span><br /><a href={p.trackingLink} target="_blank" rel="noreferrer" style={{ fontWeight: 600 }}>View Tracking</a></div>}
             {p.shippingFrom && <div><span style={{ color: '#94a3b8' }}>Shipped From</span><br /><strong>{p.shippingFrom}</strong></div>}
+            {p.estimatedArrival && <div><span style={{ color: '#94a3b8' }}>Est. Arrival</span><br /><strong>{new Date(p.estimatedArrival).toLocaleDateString()}</strong></div>}
           </div>
+          <StationContact phone={p.stationPhone} email={p.stationEmail} />
 
           {p.status === 'AwaitingShipment' && (
             <div style={{ marginTop: 20, padding: 16, background: '#fffbeb', borderRadius: 12, border: '1px solid #fde68a' }}>
               <p style={{ fontSize: 14, fontWeight: 600, color: '#92400e', marginBottom: 10 }}>Add your shipping details</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <input placeholder="Tracking link (e.g. https://www.canadapost.ca/track/...)" value={trackingInput[p.id] || ''}
+                <input placeholder="Tracking link (optional)" value={trackingInput[p.id] || ''}
                   onChange={e => setTrackingInput(prev => ({ ...prev, [p.id]: e.target.value }))}
                   style={{ padding: '11px 14px', fontSize: 16, border: '2px solid #e2e8f0', borderRadius: 10, background: '#fff' }} />
                 <input placeholder="Shipping from — store name (optional)" value={shippingFromInput[p.id] || ''}
                   onChange={e => setShippingFromInput(prev => ({ ...prev, [p.id]: e.target.value }))}
                   style={{ padding: '11px 14px', fontSize: 16, border: '2px solid #e2e8f0', borderRadius: 10, background: '#fff' }} />
-                <button className="btn btn-secondary" onClick={() => addTracking(p.id)}>Save</button>
+                <div>
+                  <label style={{ fontSize: 13, color: '#64748b', marginBottom: 4, display: 'block' }}>Estimated arrival date (optional)</label>
+                  <input type="date" value={arrivalDateInput[p.id] || ''}
+                    onChange={e => setArrivalDateInput(prev => ({ ...prev, [p.id]: e.target.value }))}
+                    style={{ padding: '11px 14px', fontSize: 16, border: '2px solid #e2e8f0', borderRadius: 10, background: '#fff', width: '100%' }} />
+                </div>
+                <button className="btn btn-secondary" onClick={() => addTracking(p.id)}>Mark as Shipped</button>
               </div>
             </div>
           )}

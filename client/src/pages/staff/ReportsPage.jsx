@@ -20,12 +20,22 @@ export default function ReportsPage() {
       .then(({ data }) => setReport(data)).catch(() => {}).finally(() => setLoading(false));
   }, [month, year]);
 
+  const downloadPDF = async () => {
+    try {
+      const { data } = await api.get(`/station/reports/pdf?month=${month}&year=${year}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url; a.download = `report-${MONTHS[month-1]}-${year}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    } catch {}
+  };
+
   const chartData = report ? {
-    labels: ['Small', 'Medium', 'Large'],
+    labels: ['Small', 'Medium', 'Large', 'Extra Large'],
     datasets: [{
       label: 'Revenue (CAD)',
-      data: [report.breakdown.Small.fees / 100, report.breakdown.Medium.fees / 100, report.breakdown.Large.fees / 100],
-      backgroundColor: ['#d05535', '#f59e0b', '#1e3a5f'],
+      data: [report.breakdown.Small.fees / 100, report.breakdown.Medium.fees / 100, report.breakdown.Large.fees / 100, report.breakdown['Extra Large'].fees / 100],
+      backgroundColor: ['#d05535', '#f59e0b', '#1e3a5f', '#2A7B88'],
       borderRadius: 8, barPercentage: 0.6,
     }],
   } : null;
@@ -69,7 +79,7 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody>
-                {['Small', 'Medium', 'Large'].map(s => (
+                {['Small', 'Medium', 'Large', 'Extra Large'].map(s => (
                   <tr key={s} style={{ background: '#f8fafc', borderRadius: 8 }}>
                     <td style={{ padding: '12px', fontWeight: 600, borderRadius: '8px 0 0 8px' }}>{s}</td>
                     <td style={{ textAlign: 'right', padding: '12px' }}>{report.breakdown[s].count}</td>
@@ -88,6 +98,10 @@ export default function ReportsPage() {
                 }} />
               </div>
             )}
+
+            <button className="btn btn-primary mt-20" onClick={downloadPDF} style={{ width: '100%' }}>
+              Download Report as PDF
+            </button>
           </>
         )}
       </div>

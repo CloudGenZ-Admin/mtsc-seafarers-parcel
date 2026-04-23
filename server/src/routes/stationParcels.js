@@ -14,17 +14,105 @@ function findStation(req, stationId) {
 // GET /api/station/parcels/incoming
 router.get('/incoming', async (req, res) => {
   try {
+    const { search } = req.query;
+    const where = { stationId: req.user.stationId, status: { [Op.in]: ['AwaitingShipment', 'Shipped'] } };
+
     const parcels = await ParcelRequest.findAll({
-      where: { stationId: req.user.stationId, status: { [Op.in]: ['AwaitingShipment', 'Shipped'] } },
-      include: [{ model: User, attributes: ['email'] }],
-      order: [['createdAt', 'DESC']],
+      where,
+      include: [{ model: User, attributes: ['email', 'firstName', 'lastName', 'phone'] }],
+      order: [['estimatedArrival', 'ASC'], ['createdAt', 'DESC']],
     });
-    res.json(parcels.map(p => ({
+
+    let result = parcels.map(p => ({
       ...p.toJSON(),
       seafarerEmail: p.User?.email,
-    })));
+      seafarerName: p.User ? `${p.User.firstName} ${p.User.lastName}` : '',
+      seafarerPhone: p.User?.phone,
+    }));
+
+    // Client-side search by name, email, reference, or store
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(p =>
+        p.seafarerName?.toLowerCase().includes(q) ||
+        p.seafarerEmail?.toLowerCase().includes(q) ||
+        p.referenceNumber?.toLowerCase().includes(q) ||
+        p.shippingFrom?.toLowerCase().includes(q)
+      );
+    }
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Failed to fetch incoming parcels' } });
+  }
+});
+
+// GET /api/station/parcels/pending-pickup
+router.get('/pending-pickup', async (req, res) => {
+  try {
+    const { search } = req.query;
+    const parcels = await ParcelRequest.findAll({
+      where: { stationId: req.user.stationId, status: 'Arrived' },
+      include: [{ model: User, attributes: ['email', 'firstName', 'lastName', 'phone'] }],
+      order: [['arrivedAt', 'DESC']],
+    });
+
+    let result = parcels.map(p => ({
+      ...p.toJSON(),
+      seafarerEmail: p.User?.email,
+      seafarerName: p.User ? `${p.User.firstName} ${p.User.lastName}` : '',
+      seafarerPhone: p.User?.phone,
+    }));
+
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(p =>
+        p.seafarerName?.toLowerCase().includes(q) ||
+        p.seafarerEmail?.toLowerCase().includes(q) ||
+        p.referenceNumber?.toLowerCase().includes(q) ||
+        p.shippingFrom?.toLowerCase().includes(q)
+      );
+    }
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Failed to fetch pending pickup parcels' } });
+  }
+});
+
+// GET /api/station/parcels/completed
+router.get('/completed', async (req, res) => {
+  try {
+    const { search } = req.query;
+    const where = { stationId: req.user.stationId, status: 'Delivered' };
+
+    const parcels = await ParcelRequest.findAll({
+      where,
+      include: [{ model: User, attributes: ['email', 'firstName', 'lastName', 'phone'] }],
+      order: [['deliveredAt', 'DESC']],
+      limit: search ? 50 : 10,
+    });
+
+    let result = parcels.map(p => ({
+      ...p.toJSON(),
+      seafarerEmail: p.User?.email,
+      seafarerName: p.User ? `${p.User.firstName} ${p.User.lastName}` : '',
+      seafarerPhone: p.User?.phone,
+    }));
+
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(p =>
+        p.seafarerName?.toLowerCase().includes(q) ||
+        p.seafarerEmail?.toLowerCase().includes(q) ||
+        p.referenceNumber?.toLowerCase().includes(q) ||
+        p.shippingFrom?.toLowerCase().includes(q)
+      );
+    }
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Failed to fetch completed parcels' } });
   }
 });
 
@@ -33,7 +121,7 @@ router.patch('/:id/arrived', async (req, res) => {
   try {
     const parcel = await ParcelRequest.findOne({
       where: { id: req.params.id, stationId: req.user.stationId },
-      include: [{ model: User, attributes: ['email'] }],
+      include: [{ model: User, attributes: ['email', 'firstName', 'lastName'] }],
     });
     if (!parcel) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Parcel not found' } });
 
@@ -64,12 +152,12 @@ router.get('/lookup/:ref', async (req, res) => {
   try {
     const parcel = await ParcelRequest.findOne({
       where: { referenceNumber: req.params.ref, stationId: req.user.stationId },
-      include: [{ model: User, attributes: ['email'] }],
+      include: [{ model: User, attributes: ['email', 'firstName', 'lastName', 'phone'] }],
     });
     if (!parcel) {
       return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'No active parcel found for this reference number' } });
     }
-    res.json({ ...parcel.toJSON(), seafarerEmail: parcel.User?.email });
+    res.json({ ...parcel.toJSON(), seafarerEmail: parcel.User?.email, seafarerName: parcel.User ? `${parcel.User.firstName} ${parcel.User.lastName}` : '', seafarerPhone: parcel.User?.phone });
   } catch (err) {
     res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Lookup failed' } });
   }
@@ -85,7 +173,7 @@ router.post('/:id/deliver', async (req, res) => {
 
     const parcel = await ParcelRequest.findOne({
       where: { id: req.params.id, stationId: req.user.stationId },
-      include: [{ model: User, attributes: ['email'] }],
+      include: [{ model: User, attributes: ['email', 'firstName', 'lastName'] }],
     });
     if (!parcel) return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Parcel not found' } });
 

@@ -22,7 +22,7 @@ module.exports = (sequelize) => {
       allowNull: false,
     },
     size: {
-      type: DataTypes.ENUM('Small', 'Medium', 'Large'),
+      type: DataTypes.ENUM('Small', 'Medium', 'Large', 'Extra Large'),
       allowNull: false,
     },
     handlingFeeCents: {
@@ -40,6 +40,10 @@ module.exports = (sequelize) => {
     },
     shippingFrom: {
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    estimatedArrival: {
+      type: DataTypes.DATEONLY,
       allowNull: true,
     },
     stripeSessionId: {

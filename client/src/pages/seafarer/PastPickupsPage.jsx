@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import StationContact from '../../components/common/StationContact';
 
 export default function PastPickupsPage() {
   const [parcels, setParcels] = useState([]);
@@ -48,7 +49,8 @@ export default function PastPickupsPage() {
             <div><span style={{ color: '#94a3b8' }}>Fee Paid</span><br /><strong>${(p.handlingFeeCents / 100).toFixed(2)} CAD</strong></div>
             <div><span style={{ color: '#94a3b8' }}>Delivered</span><br /><strong>{new Date(p.deliveredAt).toLocaleDateString()}</strong></div>
           </div>
-          <button className="btn btn-outline" onClick={() => downloadReceipt(p.id, p.referenceNumber)}>Download Receipt (PDF)</button>
+          <StationContact phone={p.stationPhone} email={p.stationEmail} />
+          <button className="btn btn-outline" style={{ marginTop: 16 }} onClick={() => downloadReceipt(p.id, p.referenceNumber)}>Download Receipt (PDF)</button>
         </div>
       ))}
     </div>
