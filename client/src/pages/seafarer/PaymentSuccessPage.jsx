@@ -65,6 +65,11 @@ export default function PaymentSuccessPage() {
               <p style={{ color: '#64748b', fontSize: 15 }}>{parcel.stationAddress}</p>
               <StationContact phone={parcel.stationPhone} email={parcel.stationEmail} style={{ marginTop: 8 }} />
             </div>
+            <div style={{ marginTop: 12, padding: 12, background: '#fffbeb', borderRadius: 10, border: '1px solid #fde68a' }}>
+              <p style={{ fontWeight: 700, color: '#92400e', fontSize: 14, marginBottom: 4 }}>📦 Shipping Instructions</p>
+              <p style={{ color: '#78350f', fontSize: 14 }}>Address your parcel as <strong>C/O Mission to Seafarers</strong> at the station address above.</p>
+              <p style={{ color: '#78350f', fontSize: 14, marginTop: 4 }}>Please request <strong>signature on delivery</strong> when shipping.</p>
+            </div>
           </div>
         </div>
 

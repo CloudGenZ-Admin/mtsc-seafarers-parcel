@@ -153,4 +153,49 @@ async function sendDeliveryEmail(parcelData) {
   }
 }
 
-module.exports = { sendArrivalEmail, sendDeliveryEmail, arrivalEmailHtml, deliveryEmailHtml };
+function requestEmailHtml({ referenceNumber, size, stationName, stationAddress, seafarerName }) {
+  return `<!DOCTYPE html><html><body style="font-family:sans-serif;color:#1B2A4A;">
+<h2>New Parcel Request</h2>
+<p>A new parcel request has been created${seafarerName ? ` by <strong>${seafarerName}</strong>` : ''}.</p>
+<p><strong>Reference:</strong> ${referenceNumber}</p>
+<p><strong>Size:</strong> ${size}</p>
+<p><strong>Station:</strong> ${stationName}</p>
+<p><strong>Address:</strong> ${stationAddress}</p>
+<h3>Shipping Instructions</h3>
+<p>Please address your parcel as <strong>C/O Mission to Seafarers</strong> at the station address above.</p>
+<p>Please request <strong>signature on delivery</strong> when shipping.</p>
+<p>Thank you,<br/>Mission to Seafarers Canada</p>
+</body></html>`;
+}
+
+async function sendRequestEmail({ email, stationEmail, referenceNumber, size, stationName, stationAddress, seafarerName }) {
+  const html = requestEmailHtml({ referenceNumber, size, stationName, stationAddress, seafarerName });
+  const subject = `New parcel request ${referenceNumber} – ${stationName}`;
+  const recipients = [email, stationEmail].filter(Boolean).join(', ');
+
+  const transport = getTransporter();
+  if (transport) {
+    try {
+      await transport.sendMail({
+        from: `"Mission to Seafarers Canada" <${process.env.EMAIL_USER}>`,
+        to: recipients,
+        subject,
+        html,
+      });
+      console.log(`Request email sent to ${recipients} for parcel ${referenceNumber}`);
+    } catch (error) {
+      console.error('Failed to send request email:', error.message);
+      console.log('--- EMAIL (FALLBACK) ---');
+      console.log('To:', recipients);
+      console.log('Subject:', subject);
+      console.log('--- END EMAIL ---');
+    }
+  } else {
+    console.log('--- EMAIL (NO CONFIG) ---');
+    console.log('To:', recipients);
+    console.log('Subject:', subject);
+    console.log('--- END EMAIL ---');
+  }
+}
+
+module.exports = { sendArrivalEmail, sendDeliveryEmail, sendRequestEmail, arrivalEmailHtml, deliveryEmailHtml, requestEmailHtml };

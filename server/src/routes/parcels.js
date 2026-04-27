@@ -7,6 +7,7 @@ const { validateTransition, getTimestampField } = require('../utils/statusTransi
 const { createCheckoutSession, retrieveSession } = require('../services/stripeService');
 const { generateQRCode } = require('../services/qrService');
 const { generateReceiptPDF } = require('../services/receiptService');
+const { sendRequestEmail } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -86,6 +87,17 @@ router.post('/confirm-payment', async (req, res) => {
     });
 
     const station = findStation(req, stationId);
+    const user = await User.findByPk(req.user.userId);
+    sendRequestEmail({
+      email: user?.email,
+      stationEmail: station?.email,
+      referenceNumber: parcel.referenceNumber,
+      size,
+      stationName: station?.name,
+      stationAddress: station?.address,
+      seafarerName: user ? `${user.firstName} ${user.lastName}` : '',
+    }).catch(err => console.error('Request email error:', err.message));
+
     res.json({
       ...parcel.toJSON(),
       stationName: station?.name,

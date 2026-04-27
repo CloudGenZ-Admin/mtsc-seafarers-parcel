@@ -49,8 +49,8 @@ export default function LoginPage() {
           </form>
         </div>
         <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <p style={{ color: '#64748b' }}>Don't have an account? <Link to="/register">Create one</Link></p>
-          <p style={{ marginTop: 12 }}><Link to="/staff/login" style={{ color: '#94a3b8', fontSize: 14 }}>Station Staff Login →</Link></p>
+          <p style={{ color: '#64748b' }}>Don't have an account? <Link to="/register" style={{ color: '#d05535', fontWeight: 700 }}>Create one</Link></p>
+          <p style={{ marginTop: 12 }}><Link to="/staff/login" style={{ color: '#0369a1', fontSize: 15, fontWeight: 700 }}>Station Staff Login →</Link></p>
         </div>
       </div>
     </div>

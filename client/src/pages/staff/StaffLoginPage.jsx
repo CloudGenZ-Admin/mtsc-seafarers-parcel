@@ -47,7 +47,7 @@ export default function StaffLoginPage() {
             </button>
           </form>
         </div>
-        <p style={{ textAlign: 'center', marginTop: 20 }}><Link to="/login" style={{ color: '#94a3b8', fontSize: 14 }}>← Seafarer Login</Link></p>
+        <p style={{ textAlign: 'center', marginTop: 20 }}><Link to="/login" style={{ color: '#0369a1', fontSize: 15, fontWeight: 700 }}>← Seafarer Login</Link></p>
       </div>
     </div>
   );
