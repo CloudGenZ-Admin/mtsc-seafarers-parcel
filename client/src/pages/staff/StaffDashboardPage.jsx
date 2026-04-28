@@ -14,6 +14,11 @@ export default function StaffDashboardPage() {
   const [incomingOpen, setIncomingOpen] = useState(true);
   const [pendingOpen, setPendingOpen] = useState(true);
 
+  // Notes modal state
+  const [notesModal, setNotesModal] = useState(null);
+  const [notesText, setNotesText] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+
   // Scan / pickup state
   const [scanMode, setScanMode] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -45,6 +50,29 @@ export default function StaffDashboardPage() {
 
   const markArrived = async (id) => {
     try { await api.patch(`/station/parcels/${id}/arrived`); fetchAll(search); } catch {}
+  };
+
+  const openNotesModal = (parcel) => {
+    setNotesModal(parcel);
+    setNotesText(parcel.internalNotes || '');
+  };
+
+  const closeNotesModal = () => {
+    setNotesModal(null);
+    setNotesText('');
+  };
+
+  const saveNotes = async () => {
+    setSavingNotes(true);
+    try {
+      await api.patch(`/station/parcels/${notesModal.id}/notes`, { notes: notesText });
+      fetchAll(search);
+      closeNotesModal();
+    } catch (err) {
+      alert('Failed to save notes');
+    } finally {
+      setSavingNotes(false);
+    }
   };
 
   // QR Scanner
@@ -98,8 +126,34 @@ export default function StaffDashboardPage() {
     <div className="card" key={p.id}>
       <div className="flex-between" style={{ marginBottom: 12 }}>
         <p style={{ fontSize: 20, fontWeight: 800, color: '#0f172a' }}>{p.referenceNumber}</p>
-        <StatusBadge status={p.status} />
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button 
+            onClick={() => openNotesModal(p)}
+            style={{ 
+              padding: '6px 12px', 
+              background: p.internalNotes ? '#fef3c7' : '#f1f5f9', 
+              border: p.internalNotes ? '1px solid #fbbf24' : '1px solid #cbd5e1',
+              borderRadius: '6px', 
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: '600',
+              color: p.internalNotes ? '#92400e' : '#64748b',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title={p.internalNotes ? 'View/Edit Notes' : 'Add Notes'}
+          >
+            {p.internalNotes ? 'Notes' : 'Add Note'}
+          </button>
+          <StatusBadge status={p.status} />
+        </div>
       </div>
+      {p.internalNotes && (
+        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '14px', color: '#92400e' }}>
+          <strong>Internal Note:</strong> {p.internalNotes.length > 100 ? p.internalNotes.substring(0, 100) + '...' : p.internalNotes}
+        </div>
+      )}
       <div className="divider" />
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 15, color: '#475569' }}>
         <div><span style={{ color: '#94a3b8' }}>Seafarer</span><br /><strong>{p.seafarerName || p.seafarerEmail}</strong></div>
@@ -230,6 +284,45 @@ export default function StaffDashboardPage() {
             <button className="btn btn-accent mt-20" onClick={() => { setScanMode(true); setScannedParcel(p); setDelivered(false); setScanError(''); }}>Process Pickup</button>
           } />
         ))
+      )}
+
+      {/* Notes Modal */}
+      {notesModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '12px', padding: '24px', maxWidth: '600px', width: '100%', maxHeight: '80vh', overflow: 'auto' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#0f172a', marginBottom: '8px' }}>Internal Notes</h2>
+            <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '16px' }}>
+              Parcel: <strong>{notesModal.referenceNumber}</strong> - {notesModal.seafarerName}
+            </p>
+            <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px', fontStyle: 'italic' }}>
+              These notes are internal only and not visible to seafarers.
+            </p>
+            <textarea
+              value={notesText}
+              onChange={(e) => setNotesText(e.target.value)}
+              placeholder="Add internal notes about this parcel..."
+              rows="6"
+              style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '15px', fontFamily: 'inherit', resize: 'vertical' }}
+            />
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button 
+                className="btn btn-primary" 
+                onClick={saveNotes}
+                disabled={savingNotes}
+                style={{ flex: 1 }}
+              >
+                {savingNotes ? 'Saving...' : 'Save Notes'}
+              </button>
+              <button 
+                className="btn btn-outline" 
+                onClick={closeNotesModal}
+                disabled={savingNotes}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
