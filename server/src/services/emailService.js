@@ -243,4 +243,4 @@ async function sendResetPasswordEmail(userData) {
   }
 }
 
-module.exports = { sendArrivalEmail, sendDeliveryEmail, sendRequestEmail, sendResetPasswordEmail, sendParcelRequestEmail, arrivalEmailHtml, deliveryEmailHtml, requestEmailHtml };
+module.exports = { sendArrivalEmail, sendDeliveryEmail, sendRequestEmail, sendResetPasswordEmail, arrivalEmailHtml, deliveryEmailHtml, requestEmailHtml };
