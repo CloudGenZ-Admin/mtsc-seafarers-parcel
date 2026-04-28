@@ -67,6 +67,18 @@ function deliveryEmailHtml({ stationName, referenceNumber, size, deliveredAt, si
 </body></html>`;
 }
 
+function resetPasswordEmailHtml({ firstName, otp }) {
+  return `<!DOCTYPE html><html><body style="font-family:sans-serif;color:#1B2A4A;">
+<h2>Password Reset Request</h2>
+<p>Hello ${firstName},</p>
+<p>You requested to reset your password. Please use the following OTP code:</p>
+<h1 style="background:#f0f0f0;padding:20px;text-align:center;letter-spacing:5px;">${otp}</h1>
+<p>This code will expire in 15 minutes.</p>
+<p>If you didn't request this, please ignore this email.</p>
+<p>Thank you,<br/>Mission to Seafarers Canada</p>
+</body></html>`;
+}
+
 async function sendArrivalEmail(parcelData) {
   // Save QR code image and get URL
   const qrCodeUrl = saveImage(parcelData.qrCodeDataUrl, parcelData.referenceNumber, 'QR');
@@ -198,4 +210,37 @@ async function sendRequestEmail({ email, stationEmail, referenceNumber, size, st
   }
 }
 
-module.exports = { sendArrivalEmail, sendDeliveryEmail, sendRequestEmail, arrivalEmailHtml, deliveryEmailHtml, requestEmailHtml };
+async function sendResetPasswordEmail(userData) {
+  const html = resetPasswordEmailHtml(userData);
+  const to = userData.email;
+  const subject = 'Password Reset OTP';
+  
+  const transport = getTransporter();
+  
+  if (transport) {
+    try {
+      await transport.sendMail({
+        from: `"Mission to Seafarers Canada" <${process.env.EMAIL_USER}>`,
+        to,
+        subject,
+        html,
+      });
+      console.log(`Reset password OTP sent to ${to}`);
+    } catch (error) {
+      console.error('Failed to send reset password email:', error.message);
+      console.log('--- EMAIL (FALLBACK) ---');
+      console.log('To:', to);
+      console.log('Subject:', subject);
+      console.log('OTP:', userData.otp);
+      console.log('--- END EMAIL ---');
+    }
+  } else {
+    console.log('--- EMAIL (NO CONFIG) ---');
+    console.log('To:', to);
+    console.log('Subject:', subject);
+    console.log('OTP:', userData.otp);
+    console.log('--- END EMAIL ---');
+  }
+}
+
+module.exports = { sendArrivalEmail, sendDeliveryEmail, sendRequestEmail, sendResetPasswordEmail, sendParcelRequestEmail, arrivalEmailHtml, deliveryEmailHtml, requestEmailHtml };

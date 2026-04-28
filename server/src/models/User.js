@@ -31,6 +31,14 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    resetOtp: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    resetOtpExpiry: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   });
 
   return User;
