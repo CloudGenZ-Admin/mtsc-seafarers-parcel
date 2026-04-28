@@ -42,6 +42,9 @@ export default function LoginPage() {
             <div className="form-group">
               <label htmlFor="password">Password</label>
               <input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required />
+              <div style={{ textAlign: 'right', marginTop: '8px' }}>
+                <Link to="/forgot-password" style={{ color: '#d05535', fontSize: '14px', fontWeight: '600' }}>Forgot Password?</Link>
+              </div>
             </div>
             <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}

@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/common/Navbar';
 import RegisterPage from './pages/seafarer/RegisterPage';
 import LoginPage from './pages/seafarer/LoginPage';
+import ForgotPasswordPage from './pages/seafarer/ForgotPasswordPage';
 import DashboardPage from './pages/seafarer/DashboardPage';
 import NewParcelPage from './pages/seafarer/NewParcelPage';
 import PaymentSuccessPage from './pages/seafarer/PaymentSuccessPage';
@@ -27,6 +28,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <RegisterPage />} />
       <Route path="/login" element={user ? <Navigate to={user.role === 'staff' ? '/staff/dashboard' : '/dashboard'} /> : <LoginPage />} />
+      <Route path="/forgot-password" element={user ? <Navigate to="/dashboard" /> : <ForgotPasswordPage />} />
       <Route path="/staff/login" element={user ? <Navigate to="/staff/dashboard" /> : <StaffLoginPage />} />
       <Route path="/dashboard" element={<ProtectedRoute role="seafarer"><DashboardPage /></ProtectedRoute>} />
       <Route path="/parcels/new" element={<ProtectedRoute role="seafarer"><NewParcelPage /></ProtectedRoute>} />
