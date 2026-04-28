@@ -17,6 +17,8 @@ export default function StaffDashboardPage() {
   // Notes modal state
   const [notesModal, setNotesModal] = useState(null);
   const [notesText, setNotesText] = useState('');
+  const [originalNotes, setOriginalNotes] = useState('');
+  const [editingNotes, setEditingNotes] = useState(false);
   const [savingNotes, setSavingNotes] = useState(false);
 
   // Scan / pickup state
@@ -55,12 +57,27 @@ export default function StaffDashboardPage() {
   const openNotesModal = (parcel) => {
     setNotesModal(parcel);
     setNotesText(parcel.internalNotes || '');
+    setOriginalNotes(parcel.internalNotes || '');
+    setEditingNotes(!parcel.internalNotes); // Auto-edit if no notes exist
   };
 
   const closeNotesModal = () => {
     setNotesModal(null);
     setNotesText('');
+    setOriginalNotes('');
+    setEditingNotes(false);
   };
+
+  const startEditing = () => {
+    setEditingNotes(true);
+  };
+
+  const cancelEditing = () => {
+    setNotesText(originalNotes);
+    setEditingNotes(false);
+  };
+
+  const hasChanges = notesText !== originalNotes;
 
   const saveNotes = async () => {
     setSavingNotes(true);
@@ -149,11 +166,7 @@ export default function StaffDashboardPage() {
           <StatusBadge status={p.status} />
         </div>
       </div>
-      {p.internalNotes && (
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '10px', marginBottom: '12px', fontSize: '14px', color: '#92400e' }}>
-          <strong>Internal Note:</strong> {p.internalNotes.length > 100 ? p.internalNotes.substring(0, 100) + '...' : p.internalNotes}
-        </div>
-      )}
+
       <div className="divider" />
       <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 15, color: '#475569' }}>
         <div><span style={{ color: '#94a3b8' }}>Seafarer</span><br /><strong>{p.seafarerName || p.seafarerEmail}</strong></div>
@@ -297,30 +310,65 @@ export default function StaffDashboardPage() {
             <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '12px', fontStyle: 'italic' }}>
               These notes are internal only and not visible to seafarers.
             </p>
-            <textarea
-              value={notesText}
-              onChange={(e) => setNotesText(e.target.value)}
-              placeholder="Add internal notes about this parcel..."
-              rows="6"
-              style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '15px', fontFamily: 'inherit', resize: 'vertical' }}
-            />
-            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-              <button 
-                className="btn btn-primary" 
-                onClick={saveNotes}
-                disabled={savingNotes}
-                style={{ flex: 1 }}
-              >
-                {savingNotes ? 'Saving...' : 'Save Notes'}
-              </button>
-              <button 
-                className="btn btn-outline" 
-                onClick={closeNotesModal}
-                disabled={savingNotes}
-              >
-                Cancel
-              </button>
-            </div>
+
+            {!editingNotes ? (
+              // View mode
+              <div>
+                {notesText ? (
+                  <div style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '8px', padding: '16px', minHeight: '120px', fontSize: '15px', color: '#475569', whiteSpace: 'pre-wrap', marginBottom: '16px' }}>
+                    {notesText}
+                  </div>
+                ) : (
+                  <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '8px', padding: '32px', textAlign: 'center', color: '#94a3b8', fontSize: '14px', marginBottom: '16px' }}>
+                    No notes added yet
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={startEditing}
+                    style={{ flex: 1 }}
+                  >
+                    {notesText ? 'Edit Notes' : 'Add Notes'}
+                  </button>
+                  <button 
+                    className="btn btn-outline" 
+                    onClick={closeNotesModal}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Edit mode
+              <div>
+                <textarea
+                  value={notesText}
+                  onChange={(e) => setNotesText(e.target.value)}
+                  placeholder="Add internal notes about this parcel..."
+                  rows="6"
+                  autoFocus
+                  style={{ width: '100%', padding: '12px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '15px', fontFamily: 'inherit', resize: 'vertical', marginBottom: '16px' }}
+                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={saveNotes}
+                    disabled={savingNotes || !hasChanges}
+                    style={{ flex: 1 }}
+                  >
+                    {savingNotes ? 'Saving...' : hasChanges ? 'Update Notes' : 'No Changes'}
+                  </button>
+                  <button 
+                    className="btn btn-outline" 
+                    onClick={originalNotes ? cancelEditing : closeNotesModal}
+                    disabled={savingNotes}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
