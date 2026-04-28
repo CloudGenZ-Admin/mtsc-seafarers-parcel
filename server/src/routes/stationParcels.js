@@ -201,3 +201,24 @@ router.post('/:id/deliver', async (req, res) => {
 });
 
 module.exports = router;
+
+router.patch('/:id/notes', async (req, res) => {
+  try {
+    const { notes } = req.body;
+    
+    const parcel = await ParcelRequest.findOne({
+      where: { id: req.params.id, stationId: req.user.stationId },
+    });
+    
+    if (!parcel) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Parcel not found' } });
+    }
+
+    await parcel.update({ internalNotes: notes || null });
+
+    res.json({ id: parcel.id, internalNotes: parcel.internalNotes });
+  } catch (err) {
+    console.error('Update notes error:', err);
+    res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Failed to update notes' } });
+  }
+});

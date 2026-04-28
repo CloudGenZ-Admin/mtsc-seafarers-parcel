@@ -52,6 +52,7 @@ function arrivalEmailHtml({ stationName, stationAddress, referenceNumber, qrCode
 <p>Station Address: ${stationAddress}</p>
 <p>Please present this QR code at the station for pickup:</p>
 <img src="${qrCodeUrl}" alt="QR Code" style="width:200px;height:200px;" />
+<p style="background:#fff3cd;border-left:4px solid #ffc107;padding:12px;margin:20px 0;"><strong>Important:</strong> Please pickup your parcel within 30 days.</p>
 <p>Thank you,<br/>Mission to Seafarers Canada</p>
 </body></html>`;
 }

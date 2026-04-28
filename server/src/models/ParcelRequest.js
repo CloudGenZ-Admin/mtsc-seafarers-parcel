@@ -71,6 +71,10 @@ module.exports = (sequelize) => {
       type: DataTypes.DATE,
       allowNull: true,
     },
+    internalNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   });
 
   return ParcelRequest;
