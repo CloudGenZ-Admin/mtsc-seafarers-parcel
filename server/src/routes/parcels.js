@@ -30,7 +30,9 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: { code: 'INVALID_SIZE', message: 'Invalid parcel size' } });
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    // Use the request origin for payment redirects (so it works from any allowed domain)
+    const origin = req.get('origin') || req.get('referer')?.split('/').slice(0, 3).join('/');
+    const frontendUrl = origin || process.env.FRONTEND_URL?.split(',')[0].trim() || 'http://localhost:5173';
     const successUrl = `${frontendUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}&size=${encodeURIComponent(size)}&stationId=${encodeURIComponent(stationId)}`;
     const cancelUrl = `${frontendUrl}/payment/cancel`;
 

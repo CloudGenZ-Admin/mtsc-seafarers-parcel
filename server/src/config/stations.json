@@ -1,24 +1,44 @@
 {
   "stations": [
     {
-      "id": "vancouver-port",
-      "name": "Vancouver Port Station",
-      "address": "123 Harbour Rd, Vancouver, BC V6A 1A1",
-      "phone": "+1 (604) 555-0101",
-      "email": "vancouver@mtsc.ca",
-      "staffUsername": "vancouver-staff",
-      "_staffPassword_DEV_ONLY": "vancouver2025",
-      "staffPasswordHash": "$2a$10$XdFpM7rZEj9Kh8KRXf5PKe3IpGmqYp/cdJSTn6RIJqy.kRa88a5JS"
-    },
-    {
       "id": "halifax-port",
-      "name": "Halifax Port Station",
-      "address": "456 Waterfront Dr, Halifax, NS B3J 1S9",
+      "name": "Halifax",
+      "address": "844 Marginal Rd, Halifax, NS B3H 4M8",
       "phone": "+1 (902) 555-0202",
-      "email": "halifax@mtsc.ca",
+      "email": "jloot@missiontoseafarershalifax.ca,hglenn@missiontoseafarershalifax.ca",
       "staffUsername": "halifax-staff",
       "_staffPassword_DEV_ONLY": "halifax2025",
       "staffPasswordHash": "$2a$10$VacZ9Y84ChbMTqneWopJIOcIKwXo4WmblDWArOkruXmbpgHVdzlOm"
+    },
+    {
+      "id": "hamilton-port",
+      "name": "Hamilton",
+      "address": "651 Burlington St E, Hamilton, ON L8L 4J5",
+      "phone": "+1 (905) 555-0303",
+      "email": "dan.phannenhour@gmail.com,manager@mtsso.org",
+      "staffUsername": "hamilton-staff",
+      "_staffPassword_DEV_ONLY": "hamilton2025",
+      "staffPasswordHash": "$2a$10$8kZJ3mN5pQ7rL2wX9vY1eOHxKjF4sT6uA8bC2dE5fG7hI9jK0lM3n"
+    },
+    {
+      "id": "newfoundland-port",
+      "name": "Newfoundland and Labrador",
+      "address": "687 Water Street, 2nd Floor, St. John's, NL A1E 1B5",
+      "phone": "+1 (709) 555-0404",
+      "email": "morganesheppard@gmail.com,morganesheppard@missiontoseafarersnl.ca",
+      "staffUsername": "newfoundland-staff",
+      "_staffPassword_DEV_ONLY": "newfoundland2025",
+      "staffPasswordHash": "$2a$10$2pR4qS6tU8vW0xY2zA3bBcD5eF7gH9iJ1kL3mN5oP7qR9sT1uV3w"
+    },
+    {
+      "id": "toronto-port",
+      "name": "Toronto",
+      "address": "Cruise Ship Terminal, 8 Unwin Ave, Toronto, ON M5A 1A1",
+      "phone": "+1 (416) 555-0505",
+      "email": "glutenfreepriest@gmail.com",
+      "staffUsername": "toronto-staff",
+      "_staffPassword_DEV_ONLY": "toronto2025",
+      "staffPasswordHash": "$2a$10$7nM9oP1qR3sT5uV7wX9yYzA1bC3dE5fG7hI9jK1lM3nO5pQ7rS9t"
     }
   ]
 }

@@ -2,11 +2,23 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 
-// Configure nodemailer transporter
+// Configure email transporter
 let transporter = null;
 
 function getTransporter() {
-  if (!transporter && process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
+  if (!transporter && process.env.BREVO_API_KEY) {
+    // Use Brevo SMTP - user field is just for auth, can be anything
+    transporter = nodemailer.createTransport({
+      host: 'smtp-relay.brevo.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'apikey',
+        pass: process.env.BREVO_API_KEY,
+      },
+    });
+  } else if (!transporter && process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
+    // Fallback to Gmail
     transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -16,6 +28,20 @@ function getTransporter() {
     });
   }
   return transporter;
+}
+
+// Get station-based FROM address
+function getStationFromAddress(stationName) {
+  // Create station email like Toronto@mtsc.ca, Halifax@mtsc.ca
+  const stationEmail = `${stationName.replace(/\s+/g, '')}@mtsc.ca`;
+  return `"Mission to Seafarers - ${stationName}" <${stationEmail}>`;
+}
+
+// Pick one random email from comma-separated list
+function pickRandomEmail(emailString) {
+  if (!emailString) return null;
+  const emails = emailString.split(',').map(e => e.trim()).filter(Boolean);
+  return emails[Math.floor(Math.random() * emails.length)];
 }
 
 // Save base64 image to uploads folder
@@ -96,13 +122,18 @@ async function sendArrivalEmail(parcelData) {
   const to = parcelData.email;
   const subject = `Parcel ${parcelData.referenceNumber} has arrived at ${parcelData.stationName}`;
   
+  // Pick one random station email for reply-to (from actual station emails)
+  const stationReplyTo = pickRandomEmail(parcelData.stationEmail);
+  
   const transport = getTransporter();
   
   if (transport) {
     try {
       await transport.sendMail({
-        from: `"Mission to Seafarers Canada" <${process.env.EMAIL_USER}>`,
+        from: getStationFromAddress(parcelData.stationName),
         to,
+        cc: 'marsha.clyne@missiontoseafarers.org',
+        replyTo: stationReplyTo || parcelData.stationEmail,
         subject,
         html,
       });
@@ -139,13 +170,18 @@ async function sendDeliveryEmail(parcelData) {
   const to = parcelData.email;
   const subject = `Delivery confirmation for ${parcelData.referenceNumber}`;
   
+  // Pick one random station email for reply-to
+  const stationReplyTo = pickRandomEmail(parcelData.stationEmail);
+  
   const transport = getTransporter();
   
   if (transport) {
     try {
       await transport.sendMail({
-        from: `"Mission to Seafarers Canada" <${process.env.EMAIL_USER}>`,
+        from: getStationFromAddress(parcelData.stationName),
         to,
+        cc: 'marsha.clyne@missiontoseafarers.org',
+        replyTo: stationReplyTo || parcelData.stationEmail,
         subject,
         html,
       });
@@ -184,18 +220,22 @@ function requestEmailHtml({ referenceNumber, size, stationName, stationAddress, 
 async function sendRequestEmail({ email, stationEmail, referenceNumber, size, stationName, stationAddress, seafarerName }) {
   const html = requestEmailHtml({ referenceNumber, size, stationName, stationAddress, seafarerName });
   const subject = `New parcel request ${referenceNumber} – ${stationName}`;
-  const recipients = [email, stationEmail].filter(Boolean).join(', ');
+  
+  // Pick one random station email for reply-to
+  const stationReplyTo = pickRandomEmail(stationEmail);
 
   const transport = getTransporter();
   if (transport) {
     try {
       await transport.sendMail({
-        from: `"Mission to Seafarers Canada" <${process.env.EMAIL_USER}>`,
-        to: recipients,
+        from: getStationFromAddress(stationName),
+        to: email,
+        cc: 'marsha.clyne@missiontoseafarers.org',
+        replyTo: stationReplyTo || stationEmail,
         subject,
         html,
       });
-      console.log(`Request email sent to ${recipients} for parcel ${referenceNumber}`);
+      console.log(`Request email sent to ${email} for parcel ${referenceNumber}`);
     } catch (error) {
       console.error('Failed to send request email:', error.message);
       console.log('--- EMAIL (FALLBACK) ---');
@@ -221,7 +261,7 @@ async function sendResetPasswordEmail(userData) {
   if (transport) {
     try {
       await transport.sendMail({
-        from: `"Mission to Seafarers Canada" <${process.env.EMAIL_USER}>`,
+        from: getFromAddress(),
         to,
         subject,
         html,
