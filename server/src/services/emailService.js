@@ -1,23 +1,13 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 
 // Configure email transporter
 let transporter = null;
 
 function getTransporter() {
-  if (!transporter && process.env.BREVO_API_KEY) {
-    // Use Brevo SMTP - user field is just for auth, can be anything
-    transporter = nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: 'apikey',
-        pass: process.env.BREVO_API_KEY,
-      },
-    });
-  } else if (!transporter && process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
+  if (!transporter && process.env.EMAIL_USER && process.env.EMAIL_APP_PASSWORD) {
     // Fallback to Gmail
     transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -30,11 +20,59 @@ function getTransporter() {
   return transporter;
 }
 
+// Send email via Brevo API
+async function sendBrevoEmail({ from, to, cc, replyTo, subject, html }) {
+  if (!process.env.BREVO_API_KEY) {
+    console.error('BREVO_API_KEY not configured');
+    return false;
+  }
+
+  try {
+    const payload = {
+      sender: { 
+        name: from.name || "Mission to Seafarers Canada",
+        email: from.email 
+      },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+    };
+
+    if (cc) {
+      payload.cc = [{ email: cc }];
+    }
+
+    if (replyTo) {
+      payload.replyTo = { email: replyTo };
+    }
+
+    console.log('Sending email via Brevo:', { from: from.email, to, subject });
+    
+    const response = await axios.post('https://api.brevo.com/v3/smtp/email', payload, {
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json',
+      },
+    });
+
+    console.log('Brevo response:', response.data);
+    return true;
+  } catch (error) {
+    console.error('Brevo API error:', error.response?.data || error.message);
+    console.error('Failed payload:', JSON.stringify({ from, to, cc, replyTo, subject }, null, 2));
+    return false;
+  }
+}
+
 // Get station-based FROM address
 function getStationFromAddress(stationName) {
   // Create station email like Toronto@mtsc.ca, Halifax@mtsc.ca
   const stationEmail = `${stationName.replace(/\s+/g, '')}@mtsc.ca`;
-  return `"Mission to Seafarers - ${stationName}" <${stationEmail}>`;
+  return {
+    name: `Mission to Seafarers - ${stationName}`,
+    email: stationEmail
+  };
 }
 
 // Pick one random email from comma-separated list
@@ -125,28 +163,19 @@ async function sendArrivalEmail(parcelData) {
   // Pick one random station email for reply-to (from actual station emails)
   const stationReplyTo = pickRandomEmail(parcelData.stationEmail);
   
-  const transport = getTransporter();
-  
-  if (transport) {
-    try {
-      await transport.sendMail({
-        from: getStationFromAddress(parcelData.stationName),
-        to,
-        cc: 'marsha.clyne@missiontoseafarers.org',
-        replyTo: stationReplyTo || parcelData.stationEmail,
-        subject,
-        html,
-      });
-      console.log(`Arrival email sent to ${to} for parcel ${parcelData.referenceNumber}`);
-    } catch (error) {
-      console.error('Failed to send arrival email:', error.message);
-      console.log('--- EMAIL (FALLBACK) ---');
-      console.log('To:', to);
-      console.log('Subject:', subject);
-      console.log('--- END EMAIL ---');
-    }
+  const success = await sendBrevoEmail({
+    from: getStationFromAddress(parcelData.stationName),
+    to,
+    cc: 'marsha.clyne@missiontoseafarers.org',
+    replyTo: stationReplyTo || parcelData.stationEmail,
+    subject,
+    html,
+  });
+
+  if (success) {
+    console.log(`Arrival email sent to ${to} for parcel ${parcelData.referenceNumber}`);
   } else {
-    console.log('--- EMAIL (NO CONFIG) ---');
+    console.log('--- EMAIL (FALLBACK) ---');
     console.log('To:', to);
     console.log('Subject:', subject);
     console.log('QR Code URL:', qrCodeUrl);
@@ -173,28 +202,19 @@ async function sendDeliveryEmail(parcelData) {
   // Pick one random station email for reply-to
   const stationReplyTo = pickRandomEmail(parcelData.stationEmail);
   
-  const transport = getTransporter();
-  
-  if (transport) {
-    try {
-      await transport.sendMail({
-        from: getStationFromAddress(parcelData.stationName),
-        to,
-        cc: 'marsha.clyne@missiontoseafarers.org',
-        replyTo: stationReplyTo || parcelData.stationEmail,
-        subject,
-        html,
-      });
-      console.log(`Delivery email sent to ${to} for parcel ${parcelData.referenceNumber}`);
-    } catch (error) {
-      console.error('Failed to send delivery email:', error.message);
-      console.log('--- EMAIL (FALLBACK) ---');
-      console.log('To:', to);
-      console.log('Subject:', subject);
-      console.log('--- END EMAIL ---');
-    }
+  const success = await sendBrevoEmail({
+    from: getStationFromAddress(parcelData.stationName),
+    to,
+    cc: 'marsha.clyne@missiontoseafarers.org',
+    replyTo: stationReplyTo || parcelData.stationEmail,
+    subject,
+    html,
+  });
+
+  if (success) {
+    console.log(`Delivery email sent to ${to} for parcel ${parcelData.referenceNumber}`);
   } else {
-    console.log('--- EMAIL (NO CONFIG) ---');
+    console.log('--- EMAIL (FALLBACK) ---');
     console.log('To:', to);
     console.log('Subject:', subject);
     console.log('Signature URL:', signatureUrl);
@@ -224,28 +244,20 @@ async function sendRequestEmail({ email, stationEmail, referenceNumber, size, st
   // Pick one random station email for reply-to
   const stationReplyTo = pickRandomEmail(stationEmail);
 
-  const transport = getTransporter();
-  if (transport) {
-    try {
-      await transport.sendMail({
-        from: getStationFromAddress(stationName),
-        to: email,
-        cc: 'marsha.clyne@missiontoseafarers.org',
-        replyTo: stationReplyTo || stationEmail,
-        subject,
-        html,
-      });
-      console.log(`Request email sent to ${email} for parcel ${referenceNumber}`);
-    } catch (error) {
-      console.error('Failed to send request email:', error.message);
-      console.log('--- EMAIL (FALLBACK) ---');
-      console.log('To:', recipients);
-      console.log('Subject:', subject);
-      console.log('--- END EMAIL ---');
-    }
+  const success = await sendBrevoEmail({
+    from: getStationFromAddress(stationName),
+    to: email,
+    cc: 'marsha.clyne@missiontoseafarers.org',
+    replyTo: stationReplyTo || stationEmail,
+    subject,
+    html,
+  });
+
+  if (success) {
+    console.log(`Request email sent to ${email} for parcel ${referenceNumber}`);
   } else {
-    console.log('--- EMAIL (NO CONFIG) ---');
-    console.log('To:', recipients);
+    console.log('--- EMAIL (FALLBACK) ---');
+    console.log('To:', email);
     console.log('Subject:', subject);
     console.log('--- END EMAIL ---');
   }
@@ -256,27 +268,18 @@ async function sendResetPasswordEmail(userData) {
   const to = userData.email;
   const subject = 'Password Reset OTP';
   
-  const transport = getTransporter();
-  
-  if (transport) {
-    try {
-      await transport.sendMail({
-        from: getFromAddress(),
-        to,
-        subject,
-        html,
-      });
-      console.log(`Reset password OTP sent to ${to}`);
-    } catch (error) {
-      console.error('Failed to send reset password email:', error.message);
-      console.log('--- EMAIL (FALLBACK) ---');
-      console.log('To:', to);
-      console.log('Subject:', subject);
-      console.log('OTP:', userData.otp);
-      console.log('--- END EMAIL ---');
-    }
+  const success = await sendBrevoEmail({
+    from: { name: "Mission to Seafarers Canada", email: "noreply@mtsc.ca" },
+    to,
+    cc: 'marsha.clyne@missiontoseafarers.org',
+    subject,
+    html,
+  });
+
+  if (success) {
+    console.log(`Reset password OTP sent to ${to}`);
   } else {
-    console.log('--- EMAIL (NO CONFIG) ---');
+    console.log('--- EMAIL (FALLBACK) ---');
     console.log('To:', to);
     console.log('Subject:', subject);
     console.log('OTP:', userData.otp);

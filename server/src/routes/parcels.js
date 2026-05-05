@@ -31,8 +31,16 @@ router.post('/', async (req, res) => {
     }
 
     // Use the request origin for payment redirects (so it works from any allowed domain)
-    const origin = req.get('origin') || req.get('referer')?.split('/').slice(0, 3).join('/');
-    const frontendUrl = origin || process.env.FRONTEND_URL?.split(',')[0].trim() || 'http://localhost:5173';
+    let origin = req.get('origin');
+    if (!origin && req.get('referer')) {
+      const referer = req.get('referer');
+      const match = referer.match(/^(https?:\/\/[^\/]+)/);
+      origin = match ? match[1] : null;
+    }
+    const frontendUrl = origin || (process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0].trim() : 'http://localhost:5173');
+    
+    console.log('zoro Payment redirect - Origin:', origin, 'Using:', frontendUrl);
+    
     const successUrl = `${frontendUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}&size=${encodeURIComponent(size)}&stationId=${encodeURIComponent(stationId)}`;
     const cancelUrl = `${frontendUrl}/payment/cancel`;
 

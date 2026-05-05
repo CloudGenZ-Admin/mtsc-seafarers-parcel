@@ -1,7 +1,14 @@
 const Stripe = require('stripe');
-const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return Stripe(process.env.STRIPE_SECRET_KEY);
+}
 
 async function createCheckoutSession({ size, handlingFeeCents, successUrl, cancelUrl }) {
+  const stripe = getStripe();
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],
     line_items: [{
@@ -20,6 +27,7 @@ async function createCheckoutSession({ size, handlingFeeCents, successUrl, cance
 }
 
 async function retrieveSession(sessionId) {
+  const stripe = getStripe();
   return stripe.checkout.sessions.retrieve(sessionId);
 }
 
