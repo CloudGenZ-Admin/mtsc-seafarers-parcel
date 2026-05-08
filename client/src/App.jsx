@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/common/Navbar';
 import RegisterPage from './pages/seafarer/RegisterPage';
@@ -44,12 +44,24 @@ function AppRoutes() {
   );
 }
 
+function AppContent() {
+  const location = useLocation();
+  const hideNavbarPaths = ['/login', '/register', '/forgot-password', '/staff/login'];
+  const shouldHideNavbar = hideNavbarPaths.includes(location.pathname);
+
+  return (
+    <>
+      {!shouldHideNavbar && <Navbar />}
+      <AppRoutes />
+    </>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Navbar />
-        <AppRoutes />
+        <AppContent />
       </AuthProvider>
     </BrowserRouter>
   );

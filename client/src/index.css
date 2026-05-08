@@ -205,3 +205,10 @@ a:hover { color: #0284c7; text-decoration: underline; }
   .nav-hamburger { display: none !important; }
   .nav-mobile-menu { display: none !important; }
 }
+
+/* Hero banner responsive */
+@media (max-width: 768px) {
+  .hero-banner {
+    max-width: 100% !important;
+  }
+}
