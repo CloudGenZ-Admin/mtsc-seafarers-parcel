@@ -25,35 +25,65 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: 'calc(100vh - 64px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-      <div style={{ width: '100%', maxWidth: 440 }}>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <img src="https://mtsc.ca/wp-content/uploads/2025/09/seafarers-logo.png.webp" alt="Mission to Seafarers Canada" style={{ height: 60, marginBottom: 16, borderRadius: 8 }} />
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>Welcome Back</h1>
-          <p style={{ color: '#64748b', marginTop: 6 }}>Log in to manage your parcel pickups</p>
-        </div>
-        <div className="card" style={{ padding: 32 }}>
-          {error && <div className="error-msg" style={{ marginBottom: 20 }}>{error}</div>}
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="email">Email Address</label>
-              <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required />
-              <div style={{ textAlign: 'right', marginTop: '8px' }}>
-                <Link to="/forgot-password" style={{ color: '#d05535', fontSize: '14px', fontWeight: '600' }}>Forgot Password?</Link>
+    <div style={{ minHeight: 'calc(100vh - 64px)', display: 'flex', flexDirection: 'column' }}>
+      {/* Hero Image Section */}
+      <div style={{ 
+        width: '100%', 
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f1f5f9'
+      }}>
+        <img 
+          src="/Home.jpeg" 
+          alt="Mission to Seafarers" 
+          style={{ 
+            width: '100%', 
+            height: 'auto',
+            display: 'block',
+            maxHeight: '70vh'
+          }} 
+        />
+      </div>
+
+      {/* Login Form Section */}
+      <div style={{ 
+        flex: 1, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        padding: '40px 20px 20px 20px',
+        backgroundColor: '#f8fafc'
+      }}>
+        <div style={{ width: '100%', maxWidth: 440 }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>Welcome Back</h1>
+            <p style={{ color: '#64748b', marginTop: 6 }}>Log in to manage your parcel pickups</p>
+          </div>
+          <div className="card" style={{ padding: 32 }}>
+            {error && <div className="error-msg" style={{ marginBottom: 20 }}>{error}</div>}
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="email">EMAIL ADDRESS</label>
+                <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
               </div>
-            </div>
-            <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
-        </div>
-        <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <p style={{ color: '#64748b' }}>Don't have an account? <Link to="/register" style={{ color: '#d05535', fontWeight: 700 }}>Create one</Link></p>
-          <p style={{ marginTop: 12 }}><Link to="/staff/login" style={{ color: '#0369a1', fontSize: 15, fontWeight: 700 }}>Station Staff Login →</Link></p>
+              <div className="form-group">
+                <label htmlFor="password">PASSWORD</label>
+                <input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required />
+                <div style={{ textAlign: 'right', marginTop: '8px' }}>
+                  <Link to="/forgot-password" style={{ color: '#d05535', fontSize: '14px', fontWeight: '600' }}>Forgot Password?</Link>
+                </div>
+              </div>
+              <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 20 }}>
+            <p style={{ color: '#64748b' }}>Don't have an account? <Link to="/register" style={{ color: '#d05535', fontWeight: 700 }}>Create one</Link></p>
+            <p style={{ marginTop: 12 }}><Link to="/staff/login" style={{ color: '#0369a1', fontSize: 15, fontWeight: 700 }}>Station Staff Login →</Link></p>
+          </div>
         </div>
       </div>
     </div>

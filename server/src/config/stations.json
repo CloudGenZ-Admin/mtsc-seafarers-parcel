@@ -7,8 +7,8 @@
       "phone": "+1 (902) 555-0202",
       "email": "jloot@missiontoseafarershalifax.ca,hglenn@missiontoseafarershalifax.ca",
       "staffUsername": "halifax-staff",
-      "_staffPassword_DEV_ONLY": "halifax2025",
-      "staffPasswordHash": "$2a$10$VacZ9Y84ChbMTqneWopJIOcIKwXo4WmblDWArOkruXmbpgHVdzlOm"
+      "_staffPassword_DEV_ONLY": "Hlf@x9Port#2025",
+      "staffPasswordHash": "$2a$10$GU/DP24Lp.aPzkamcroed.cDqrAYiQ8sCOU8Lx4hBmPvDF0je5jL."
     },
     {
       "id": "hamilton-port",
@@ -17,8 +17,8 @@
       "phone": "+1 (905) 555-0303",
       "email": "dan.phannenhour@gmail.com,manager@mtsso.org",
       "staffUsername": "hamilton-staff",
-      "_staffPassword_DEV_ONLY": "hamilton2025",
-      "staffPasswordHash": "$2a$10$8kZJ3mN5pQ7rL2wX9vY1eOHxKjF4sT6uA8bC2dE5fG7hI9jK0lM3n"
+      "_staffPassword_DEV_ONLY": "Hm1lt0n@Port#2025",
+      "staffPasswordHash": "$2a$10$websvEE8DuWLO8PNDRM5W.qrwiW7f0ykQRmC4ABFndeJHOnP6Ukyu"
     },
     {
       "id": "newfoundland-port",
@@ -27,8 +27,8 @@
       "phone": "+1 (709) 555-0404",
       "email": "morganesheppard@gmail.com,morganesheppard@missiontoseafarersnl.ca",
       "staffUsername": "newfoundland-staff",
-      "_staffPassword_DEV_ONLY": "newfoundland2025",
-      "staffPasswordHash": "$2a$10$2pR4qS6tU8vW0xY2zA3bBcD5eF7gH9iJ1kL3mN5oP7qR9sT1uV3w"
+      "_staffPassword_DEV_ONLY": "Nwf0undL@nd#2025",
+      "staffPasswordHash": "$2a$10$fq580qQgyv7jnVFHdLfL2unO//2rUCxOwAE4lJAP4OddU2u1iLh52"
     },
     {
       "id": "toronto-port",
@@ -37,8 +37,8 @@
       "phone": "+1 (416) 555-0505",
       "email": "glutenfreepriest@gmail.com",
       "staffUsername": "toronto-staff",
-      "_staffPassword_DEV_ONLY": "toronto2025",
-      "staffPasswordHash": "$2a$10$7nM9oP1qR3sT5uV7wX9yYzA1bC3dE5fG7hI9jK1lM3nO5pQ7rS9t"
+      "_staffPassword_DEV_ONLY": "T0r0nt0@Port#2025",
+      "staffPasswordHash": "$2a$10$3GnpC82ixcvNsi15c3QshOxEC9.D38zCjzpcRfKvdIWArdxZ4hoeO"
     }
   ]
 }
