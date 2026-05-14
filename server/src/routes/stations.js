@@ -1,10 +1,18 @@
 const express = require('express');
 const router = express.Router();
 
+const { Station } = require('../models');
+
 // GET /api/stations - list all stations (no credentials exposed)
-router.get('/', (req, res) => {
-  const stations = req.app.locals.stations.map(({ id, name, address, phone, email }) => ({ id, name, address, phone: phone || null, email: email || null }));
-  res.json(stations);
+router.get('/', async (req, res) => {
+  try {
+    const stations = await Station.findAll({
+      attributes: ['id', 'name', 'address', 'phone', 'email']
+    });
+    res.json(stations);
+  } catch (err) {
+    res.status(500).json({ error: { code: 'SERVER_ERROR', message: 'Failed to fetch stations' } });
+  }
 });
 
 module.exports = router;

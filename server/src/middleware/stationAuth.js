@@ -7,9 +7,18 @@ function stationAuth(req, res, next) {
   }
   try {
     const decoded = jwt.verify(header.split(' ')[1], process.env.JWT_SECRET);
-    if (decoded.role !== 'staff') {
-      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Staff access required' } });
+    if (decoded.role !== 'staff' && decoded.role !== 'admin') {
+      return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Staff or Admin access required' } });
     }
+
+    // If admin, they can override the stationId via header
+    if (decoded.role === 'admin') {
+      const targetStationId = req.headers['x-station-id'];
+      if (targetStationId) {
+        decoded.stationId = targetStationId;
+      }
+    }
+
     req.user = decoded;
     next();
   } catch (err) {

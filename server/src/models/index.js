@@ -3,6 +3,8 @@ const sequelize = require('../config/database');
 const User = require('./User')(sequelize);
 const ParcelRequest = require('./ParcelRequest')(sequelize);
 const PreferredStation = require('./PreferredStation')(sequelize);
+const Admin = require('./Admin')(sequelize);
+const Station = require('./Station')(sequelize);
 
 User.hasMany(ParcelRequest, { foreignKey: 'userId' });
 ParcelRequest.belongsTo(User, { foreignKey: 'userId' });
@@ -15,4 +17,4 @@ async function syncDatabase() {
   console.log('Database synced successfully');
 }
 
-module.exports = { sequelize, User, ParcelRequest, PreferredStation, syncDatabase };
+module.exports = { sequelize, User, ParcelRequest, PreferredStation, Admin, Station, syncDatabase };
