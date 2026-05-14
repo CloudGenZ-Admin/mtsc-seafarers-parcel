@@ -13,7 +13,13 @@ function parseToken(token) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const token = localStorage.getItem('token');
-    return token ? parseToken(token) : null;
+    if (!token) return null;
+    const payload = parseToken(token);
+    if (!payload) return null;
+    
+    // Merge with station context from localStorage if available
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+    return { ...payload, ...storedUser };
   });
 
   useEffect(() => {
@@ -28,7 +34,7 @@ export function AuthProvider({ children }) {
   const login = (token, userData) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
-    setUser(parseToken(token));
+    setUser({ ...parseToken(token), ...userData });
   };
 
   const logout = () => {
@@ -38,7 +44,14 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isSeafarer: user?.role === 'seafarer', isStaff: user?.role === 'staff' }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      isSeafarer: user?.role === 'seafarer', 
+      isStaff: user?.role === 'staff',
+      isAdmin: user?.role === 'admin'
+    }}>
       {children}
     </AuthContext.Provider>
   );

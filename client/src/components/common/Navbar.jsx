@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../api/client';
 
 const LOGO = 'https://mtsc.ca/wp-content/uploads/2025/09/seafarers-logo.png.webp';
 
@@ -16,13 +17,33 @@ const staffLinks = [
 ];
 
 export default function Navbar() {
-  const { user, logout, isSeafarer, isStaff } = useAuth();
+  const { user, logout, isSeafarer, isStaff, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [stations, setStations] = useState([]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      api.get('/stations').then(res => setStations(res.data)).catch(console.error);
+    }
+  }, [isAdmin]);
 
   const handleLogout = () => { logout(); navigate('/login'); setOpen(false); };
-  const links = isSeafarer ? seafarerLinks : isStaff ? staffLinks : [];
+
+  const handleStationChange = (e) => {
+    const stationId = e.target.value;
+    const station = stations.find(s => s.id === stationId);
+    if (station) {
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      userData.stationId = station.id;
+      userData.stationName = station.name;
+      localStorage.setItem('user', JSON.stringify(userData));
+      window.location.reload(); // Reload to refresh all data for new station
+    }
+  };
+
+  const links = isSeafarer ? seafarerLinks : (isStaff || isAdmin) ? staffLinks : [];
   const isActive = (to) => location.pathname === to;
 
   if (!user) return (
@@ -47,13 +68,35 @@ export default function Navbar() {
 
           {/* Desktop links */}
           <div className="nav-desktop" style={styles.desktopLinks}>
+            {isAdmin && stations.length > 0 && (
+              <div style={styles.stationWrapper}>
+                <span style={styles.stationLabel}>Station:</span>
+                <select
+                  onChange={handleStationChange}
+                  value={user?.stationId}
+                  style={styles.stationSelect}
+                >
+                  {stations.map(s => (
+                    <option key={s.id} value={s.id} style={styles.option}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             {links.map(l => (
               <Link key={l.to} to={l.to} style={{ ...styles.link, ...(isActive(l.to) ? styles.linkActive : {}) }}>
                 {l.label}
               </Link>
             ))}
             <div style={styles.divider} />
-            <button onClick={handleLogout} style={styles.logoutBtn}>Log Out</button>
+            <button 
+              onClick={handleLogout} 
+              style={{ 
+                ...styles.logoutBtn, 
+                ...(isAdmin ? { ...styles.adminLogoutBtn, width: '80px' } : {}) 
+              }}
+            >
+              Log Out
+            </button>
           </div>
 
           {/* Mobile hamburger */}
@@ -68,6 +111,20 @@ export default function Navbar() {
       {/* Mobile dropdown */}
       {open && (
         <div className="nav-mobile-menu" style={styles.mobileMenu}>
+          {isAdmin && stations.length > 0 && (
+            <div style={styles.mobileStationWrapper}>
+              <span style={styles.mobileStationLabel}>Switch Station:</span>
+              <select
+                onChange={handleStationChange}
+                value={user?.stationId}
+                style={styles.mobileStationSelect}
+              >
+                {stations.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           {links.map(l => (
             <Link key={l.to} to={l.to} onClick={() => setOpen(false)}
               style={{ ...styles.mobileLink, ...(isActive(l.to) ? styles.mobileLinkActive : {}) }}>
@@ -75,7 +132,15 @@ export default function Navbar() {
             </Link>
           ))}
           <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '4px 0' }} />
-          <button onClick={handleLogout} style={styles.mobileLogout}>Log Out</button>
+          <button 
+            onClick={handleLogout} 
+            style={{ 
+              ...styles.mobileLogout, 
+              ...(isAdmin ? { ...styles.adminLogoutBtn, width: '100%', marginTop: 10 } : {}) 
+            }}
+          >
+            Log Out
+          </button>
         </div>
       )}
     </>
@@ -194,7 +259,65 @@ const styles = {
     fontWeight: 500,
     padding: '12px 12px',
     textAlign: 'left',
-    cursor: 'pointer',
     borderRadius: 8,
+  },
+  stationWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    marginRight: 12,
+    background: 'rgba(255,255,255,0.05)',
+    padding: '4px 10px',
+    borderRadius: 8,
+    border: '1px solid rgba(255,255,255,0.1)',
+  },
+  stationLabel: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 12,
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  stationSelect: {
+    background: 'none',
+    color: '#fff',
+    border: 'none',
+    fontSize: 14,
+    fontWeight: 600,
+    outline: 'none',
+    cursor: 'pointer',
+    padding: '2px 0',
+  },
+  option: {
+    background: '#0f2744',
+    color: '#fff',
+  },
+  mobileStationWrapper: {
+    padding: '12px',
+    marginBottom: 8,
+    background: 'rgba(255,255,255,0.05)',
+    borderRadius: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  mobileStationLabel: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: 'uppercase',
+  },
+  mobileStationSelect: {
+    background: '#1a3a5f',
+    color: '#fff',
+    border: '1px solid rgba(255,255,255,0.2)',
+    padding: '10px',
+    borderRadius: 8,
+    fontSize: 15,
+    outline: 'none',
+  },
+  adminLogoutBtn: {
+    color: '#fff',
+    fontWeight: 700,
   },
 };

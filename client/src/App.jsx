@@ -18,7 +18,13 @@ import ReportsPage from './pages/staff/ReportsPage';
 function ProtectedRoute({ children, role }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" />;
-  if (role && user.role !== role) return <Navigate to={user.role === 'staff' ? '/staff/dashboard' : '/dashboard'} />;
+  if (role && user.role !== role) {
+    // Admins can access staff routes
+    if (role === 'staff' && user.role === 'admin') return children;
+    
+    const target = user.role === 'staff' || user.role === 'admin' ? '/staff/dashboard' : '/dashboard';
+    return <Navigate to={target} />;
+  }
   return children;
 }
 
