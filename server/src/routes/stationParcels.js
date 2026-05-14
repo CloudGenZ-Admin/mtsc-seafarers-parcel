@@ -138,6 +138,7 @@ router.patch('/:id/arrived', async (req, res) => {
       referenceNumber: parcel.referenceNumber,
       stationName: station?.name,
       stationAddress: station?.address,
+      stationEmail: station?.email,
       qrCodeDataUrl,
     });
 
@@ -189,6 +190,7 @@ router.post('/:id/deliver', async (req, res) => {
       email: parcel.User?.email,
       referenceNumber: parcel.referenceNumber,
       stationName: station?.name,
+      stationEmail: station?.email,
       size: parcel.size,
       deliveredAt,
       signatureDataUrl,

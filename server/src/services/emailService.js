@@ -37,17 +37,17 @@ async function sendBrevoEmail({ from, to, cc, bcc, replyTo, subject, html }) {
         name: from.name || "Mission to Seafarers Canada",
         email: from.email,
       },
-      to: [{ email: to }],
+      to: parseEmails(to),
       subject,
       htmlContent: html,
     };
 
     if (cc) {
-      payload.cc = [{ email: cc }];
+      payload.cc = parseEmails(cc);
     }
 
     if (bcc) {
-      payload.bcc = [{ email: bcc }];
+      payload.bcc = parseEmails(bcc);
     }
 
     if (replyTo) {
@@ -96,6 +96,15 @@ function getStationFromAddress(stationName) {
   };
 }
 
+// Helper to parse comma-separated emails into Brevo format
+function parseEmails(emailString) {
+  if (!emailString) return [];
+  return emailString
+    .split(",")
+    .map((e) => ({ email: e.trim() }))
+    .filter((e) => e.email);
+}
+
 // Pick the first email from comma-separated list
 function pickFirstEmail(emailString) {
   if (!emailString) return null;
@@ -103,7 +112,7 @@ function pickFirstEmail(emailString) {
     .split(",")
     .map((e) => e.trim())
     .filter(Boolean);
-  return emails[0] || "marsha.clyne@missiontoseafarers.org";
+  return emails[0];
 }
 
 // Save base64 image to uploads folder
@@ -208,6 +217,7 @@ async function sendArrivalEmail(parcelData) {
   const success = await sendBrevoEmail({
     from: getStationFromAddress(parcelData.stationName),
     to,
+    cc: pickFirstEmail(parcelData.stationEmail),
     bcc: "marsha.clyne@missiontoseafarers.org",
     replyTo: stationReplyTo || parcelData.stationEmail,
     subject,
@@ -253,6 +263,7 @@ async function sendDeliveryEmail(parcelData) {
   const success = await sendBrevoEmail({
     from: getStationFromAddress(parcelData.stationName),
     to,
+    cc: pickFirstEmail(parcelData.stationEmail),
     bcc: "marsha.clyne@missiontoseafarers.org",
     replyTo: stationReplyTo || parcelData.stationEmail,
     subject,
@@ -317,6 +328,7 @@ async function sendRequestEmail({
   const success = await sendBrevoEmail({
     from: getStationFromAddress(stationName),
     to: email,
+    cc: pickFirstEmail(stationEmail),
     bcc: "marsha.clyne@missiontoseafarers.org",
     replyTo: stationReplyTo || stationEmail,
     subject,
